@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primary_green">#1DB954</color>
+    <color name="light_green">#E8F5E9</color>
+    <color name="gray_text">#757575</color>
+    <color name="border_color">#E0E0E0</color>
+    <color name="bg_unselected">#F5F5F5</color>
+    <color name="calendar_header">#F5F5F5</color>
+    <color name="saturday_blue">#2196F3</color>
+    <color name="sunday_red">#F44336</color>
+    <color name="selected_day_bg">#E8F5E9</color>
+</resources>

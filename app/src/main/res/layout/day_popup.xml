@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="28dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    android:backgroundTint="@color/white">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Header: Cancel, Toggle, Edit -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp">
+
+                <TextView
+                    android:id="@+id/popup_btn_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bỏ qua"
+                    android:textColor="@color/primary_green"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <LinearLayout
+                    android:id="@+id/popup_toggle_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_segmented_inactive"
+                    android:orientation="horizontal"
+                    android:padding="2dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/popup_btn_tien_chi"
+                        android:layout_width="90dp"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_segmented_active"
+                        android:gravity="center"
+                        android:text="Tiền chi"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/popup_btn_tien_thu"
+                        android:layout_width="90dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="Tiền thu"
+                        android:textColor="@color/gray_text"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btn_edit_top"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_edit"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/primary_green" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Form Fields -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Date Selector -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Ngày"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_input_field"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/ic_date_prev"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_left"
+                            app:tint="@color/primary_green" />
+
+                        <TextView
+                            android:id="@+id/popup_value_date"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="20dp"
+                            android:text="26/03/2026 (Th 5)"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:id="@+id/ic_date_next"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/primary_green" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="12dp"/>
+
+                <!-- Note Input -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Ghi chú"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/popup_input_note"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:hint="Chưa nhập vào"
+                        android:paddingVertical="10dp"
+                        android:textColor="@color/black"
+                        android:textColorHint="@color/gray_text"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEEEEE" android:layout_marginBottom="12dp"/>
+
+                <!-- Amount Input -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="24dp">
+
+                    <TextView
+                        android:id="@+id/popup_amount_label"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:text="Tiền chi"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="72dp"
+                        android:background="@drawable/bg_amount_field"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="16dp">
+
+                        <EditText
+                            android:id="@+id/popup_input_amount"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:inputType="number"
+                            android:text="0"
+                            android:textColor="@color/primary_green"
+                            android:textSize="32sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="đ"
+                            android:textColor="@color/primary_green"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Categories Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chọn danh mục"
+                android:textColor="@color/gray_text"
+                android:textSize="14sp"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Category Grid (3 columns for large squares) -->
+            <GridLayout
+                android:id="@+id/popup_category_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:layout_marginHorizontal="-8dp">
+
+                <!-- Row 1 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_au"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_today" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/an_uong" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_cthn"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_manage" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/chi_tieu_hang_ngay" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_qo"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_gallery" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/quan_ao" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Row 2 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_mp"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_camera" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/my_pham" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_pgl"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_share" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/phi_giao_luu" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_yt"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_call" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/y_te" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Row 3 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_gd"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_sort_alphabetically" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/giao_duc" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_td"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_info_details" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/tien_dien" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_dl"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_directions" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/di_lai" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Row 4 -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_pll"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_send" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/phi_lien_lac" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_tn"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_view" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/tien_nha" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/popup_cs"
+                    style="@style/CategoryCardSquareStyle">
+                    <LinearLayout style="@style/CategoryContentSquareStyle">
+                        <ImageView style="@style/CategoryIconLargeStyle" android:src="@android:drawable/ic_menu_edit" />
+                        <TextView style="@style/CategoryTextLargeStyle" android:text="@string/chinh_sua" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </GridLayout>
+
+            <!-- Submit Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/popup_btn_submit"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="32dp"
+                android:text="Nhập khoản chi"
+                android:textAllCaps="false"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                app:cornerRadius="28dp"
+                android:backgroundTint="@color/primary_green"/>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</com.google.android.material.card.MaterialCardView>
