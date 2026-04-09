@@ -22,6 +22,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        boolean isOfflineMode = getIntent().getBooleanExtra(SplashActivity.EXTRA_IS_OFFLINE_MODE, false);
+        if (isOfflineMode) {
+            Intent offlineIntent = new Intent(MainActivity.this, HamchinhActivity.class);
+            offlineIntent.putExtra(SplashActivity.EXTRA_IS_OFFLINE_MODE, true);
+            startActivity(offlineIntent);
+            finish();
+            return;
+        }
+
         // Khởi tạo Firebase Auth và kiểm tra trạng thái đăng nhập
         mAuth = FirebaseAuth.getInstance();
         if (mAuth.getCurrentUser() != null) {
@@ -99,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
                                                             String note = doc.getString("note") != null ? doc.getString("note") : "";
                                                             String category = doc.getString("category") != null ? doc.getString("category") : "";
                                                             int type = doc.getLong("type") != null ? doc.getLong("type").intValue() : 0;
+                                                            String createdBy = doc.getString("createdBy") != null ? doc.getString("createdBy") : "";
+                                                            String deviceName = doc.getString("devices") != null ? doc.getString("devices") : "";
+                                                            String deviceId = doc.getString("deviceId") != null ? doc.getString("deviceId") : "";
 
                                                             java.util.Date dateObj = null;
                                                             if (doc.getTimestamp("timestamp") != null) {
@@ -111,6 +123,9 @@ public class MainActivity extends AppCompatActivity {
                                                             }
 
                                                             Transaction t = new Transaction(amount, note, category, dateStr, type);
+                                                            t.setCreatedBy(createdBy);
+                                                            t.setDeviceName(deviceName);
+                                                            t.setDeviceId(deviceId);
                                                             dbLocal.addTransaction(t);
                                                         } catch (Exception e) {
                                                             android.util.Log.e("FirebaseFetch", "Error parsing doc: " + e.getMessage());
@@ -118,13 +133,13 @@ public class MainActivity extends AppCompatActivity {
                                                     }
                                                 }
                                                 // Chuyển màn hình sau khi tải xong toàn bộ dữ liệu
-                                                Intent intentFinal = new Intent(MainActivity.this, HamchinhActivity.class);
+                                                Intent intentFinal = new Intent(MainActivity.this, SplashActivity.class);
                                                 startActivity(intentFinal);
                                                 finish();
                                             })
                                             .addOnFailureListener(e -> {
                                                 // Lỗi tải giao dịch vẫn cho phép vào trong (vì profile đã lưu)
-                                                Intent intentErr = new Intent(MainActivity.this, HamchinhActivity.class);
+                                                Intent intentErr = new Intent(MainActivity.this, SplashActivity.class);
                                                 startActivity(intentErr);
                                                 finish();
                                             });
@@ -132,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                                     })
                                     .addOnFailureListener(e -> {
                                         // Nếu lỗi fetch Profile, đi thẳng vào (fallback)
-                                        Intent intentErr = new Intent(MainActivity.this, HamchinhActivity.class);
+                                        Intent intentErr = new Intent(MainActivity.this, SplashActivity.class);
                                         startActivity(intentErr);
                                         finish();
                                     });

@@ -48,8 +48,18 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         } else if (holder instanceof TransactionViewHolder) {
             TransactionViewHolder t = (TransactionViewHolder) holder;
             Transaction trans = item.transaction;
-            t.tvCategory.setText(trans.getCategory());
-            t.tvNote.setText(trans.getNote());
+            String category = trans.getCategory() != null ? trans.getCategory() : "";
+            String note = trans.getNote() != null ? trans.getNote() : "";
+            String createdBy = (trans.getCreatedBy() != null && !trans.getCreatedBy().trim().isEmpty())
+                ? trans.getCreatedBy()
+                : "Không rõ";
+            String deviceName = (trans.getDeviceName() != null && !trans.getDeviceName().trim().isEmpty())
+                ? trans.getDeviceName()
+                : "Thiết bị";
+
+            t.tvCategory.setText(category);
+            t.tvMeta.setText("Nhập bởi: " + createdBy + " • Thiết bị: " + deviceName);
+            t.tvNote.setText(note);
             
             String amountStr = (trans.getType() == 1 ? "+" : "-") + trans.getAmount() + "đ";
             t.tvAmount.setText(amountStr);
@@ -75,11 +85,12 @@ public class HistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public static class TransactionViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCategory, tvNote, tvAmount;
+        TextView tvCategory, tvMeta, tvNote, tvAmount;
         ImageView ivIcon;
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             tvCategory = itemView.findViewById(R.id.tv_category);
+            tvMeta = itemView.findViewById(R.id.tv_meta_user_device);
             tvNote = itemView.findViewById(R.id.tv_note);
             tvAmount = itemView.findViewById(R.id.tv_amount);
             ivIcon = itemView.findViewById(R.id.iv_cat_icon);

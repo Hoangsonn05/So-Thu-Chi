@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "SoThuChi.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private static final String TABLE_TRANSACTIONS = "transactions";
     private static final String TABLE_USERS = "users";
@@ -24,6 +24,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_CATEGORY = "category";
     private static final String COLUMN_DATE = "date";
     private static final String COLUMN_TYPE = "type";
+    private static final String COLUMN_CREATED_BY = "created_by";
+    private static final String COLUMN_DEVICE_NAME = "device_name";
+    private static final String COLUMN_DEVICE_ID = "device_id";
 
     // Users columns
     private static final String COLUMN_U_NAME = "full_name";
@@ -43,7 +46,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_NOTE + " TEXT,"
                 + COLUMN_CATEGORY + " TEXT,"
                 + COLUMN_DATE + " TEXT,"
-                + COLUMN_TYPE + " INTEGER" + ")";
+            + COLUMN_TYPE + " INTEGER,"
+            + COLUMN_CREATED_BY + " TEXT,"
+            + COLUMN_DEVICE_NAME + " TEXT,"
+            + COLUMN_DEVICE_ID + " TEXT" + ")";
         
         String CREATE_USERS = "CREATE TABLE IF NOT EXISTS " + TABLE_USERS + "("
                 + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -54,12 +60,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL(CREATE_TRANSACTIONS);
         db.execSQL(CREATE_USERS);
+        ensureTransactionMetadataColumns(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Bảo vệ dữ liệu người dùng: Không xóa bảng khi nâng cấp, chỉ tạo nếu chưa có
         onCreate(db);
+        ensureTransactionMetadataColumns(db);
+    }
+
+    private void ensureTransactionMetadataColumns(SQLiteDatabase db) {
+        try {
+            db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COLUMN_CREATED_BY + " TEXT");
+        } catch (Exception ignored) {}
+        try {
+            db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COLUMN_DEVICE_NAME + " TEXT");
+        } catch (Exception ignored) {}
+        try {
+            db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COLUMN_DEVICE_ID + " TEXT");
+        } catch (Exception ignored) {}
+    }
+
+    private String getOptionalString(Cursor cursor, String columnName) {
+        int idx = cursor.getColumnIndex(columnName);
+        if (idx < 0) return "";
+        String value = cursor.getString(idx);
+        return value != null ? value : "";
     }
 
     // Insert a new transaction
@@ -71,6 +98,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_CATEGORY, t.getCategory());
         values.put(COLUMN_DATE, t.getDate());
         values.put(COLUMN_TYPE, t.getType());
+        values.put(COLUMN_CREATED_BY, t.getCreatedBy());
+        values.put(COLUMN_DEVICE_NAME, t.getDeviceName());
+        values.put(COLUMN_DEVICE_ID, t.getDeviceId());
 
         long result = db.insert(TABLE_TRANSACTIONS, null, values);
         db.close();
@@ -94,6 +124,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 t.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
                 t.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
                 t.setType(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TYPE)));
+                t.setCreatedBy(getOptionalString(cursor, COLUMN_CREATED_BY));
+                t.setDeviceName(getOptionalString(cursor, COLUMN_DEVICE_NAME));
+                t.setDeviceId(getOptionalString(cursor, COLUMN_DEVICE_ID));
                 transactions.add(t);
             } while (cursor.moveToNext());
         }
@@ -124,6 +157,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cursor.getString(cursor.getColumnIndexOrThrow("date")),
                         cursor.getInt(cursor.getColumnIndexOrThrow("type"))
                 );
+                    t.setCreatedBy(getOptionalString(cursor, COLUMN_CREATED_BY));
+                    t.setDeviceName(getOptionalString(cursor, COLUMN_DEVICE_NAME));
+                    t.setDeviceId(getOptionalString(cursor, COLUMN_DEVICE_ID));
                 transactions.add(t);
             } while (cursor.moveToNext());
             cursor.close();
@@ -149,6 +185,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         cursor.getString(cursor.getColumnIndexOrThrow("date")),
                         cursor.getInt(cursor.getColumnIndexOrThrow("type"))
                 );
+                    t.setCreatedBy(getOptionalString(cursor, COLUMN_CREATED_BY));
+                    t.setDeviceName(getOptionalString(cursor, COLUMN_DEVICE_NAME));
+                    t.setDeviceId(getOptionalString(cursor, COLUMN_DEVICE_ID));
                 transactions.add(t);
             } while (cursor.moveToNext());
             cursor.close();
@@ -172,6 +211,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 t.setCategory(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY)));
                 t.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
                 t.setType(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TYPE)));
+                t.setCreatedBy(getOptionalString(cursor, COLUMN_CREATED_BY));
+                t.setDeviceName(getOptionalString(cursor, COLUMN_DEVICE_NAME));
+                t.setDeviceId(getOptionalString(cursor, COLUMN_DEVICE_ID));
                 transactions.add(t);
             } while (cursor.moveToNext());
         }

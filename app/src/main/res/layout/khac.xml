@@ -138,6 +138,24 @@
 
                     <View style="@style/MenuDividerStyle" />
 
+                    <!-- Thay đổi Username cho Thiết bị -->
+                    <LinearLayout android:id="@+id/item_change_username" style="@style/MenuRowStyle">
+                        <ImageView style="@style/MenuIconStyle" android:src="@android:drawable/ic_menu_manage" />
+                        <TextView style="@style/MenuTextStyle" android:text="Thay đổi Username" />
+                        <ImageView style="@style/MenuChevronStyle" android:src="@drawable/ic_chevron_right" />
+                    </LinearLayout>
+
+                    <View style="@style/MenuDividerStyle" />
+
+                    <!-- Quản lý đăng nhập -->
+                    <LinearLayout android:id="@+id/item_login_management" style="@style/MenuRowStyle">
+                        <ImageView style="@style/MenuIconStyle" android:src="@drawable/ic_devices" />
+                        <TextView style="@style/MenuTextStyle" android:text="Quản lý đăng nhập" />
+                        <ImageView style="@style/MenuChevronStyle" android:src="@drawable/ic_chevron_right" />
+                    </LinearLayout>
+
+                    <View style="@style/MenuDividerStyle" />
+
                     <!-- Nhập dữ liệu từ Firebase -->
                     <LinearLayout android:id="@+id/item_download_data" style="@style/MenuRowStyle">
                         <ImageView style="@style/MenuIconStyle" android:src="@android:drawable/stat_sys_download" />

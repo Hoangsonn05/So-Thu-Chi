@@ -16,6 +16,9 @@ public class Transaction {
     private String category;
     private String date;
     private int type;
+    private String createdBy;
+    private String deviceName;
+    private String deviceId;
 
     public Transaction() {}
 
@@ -36,6 +39,17 @@ public class Transaction {
         this.type = type;
     }
 
+    public Transaction(int id, long amount, String note, String category, String date, int type, String createdBy, String deviceName) {
+        this.id = id;
+        this.amount = amount;
+        this.note = note;
+        this.category = category;
+        this.date = date;
+        this.type = type;
+        this.createdBy = createdBy;
+        this.deviceName = deviceName;
+    }
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -53,4 +67,13 @@ public class Transaction {
 
     public int getType() { return type; }
     public void setType(int type) { this.type = type; }
+
+    public String getCreatedBy() { return createdBy; }
+    public void setCreatedBy(String createdBy) { this.createdBy = createdBy; }
+
+    public String getDeviceName() { return deviceName; }
+    public void setDeviceName(String deviceName) { this.deviceName = deviceName; }
+
+    public String getDeviceId() { return deviceId; }
+    public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
 }

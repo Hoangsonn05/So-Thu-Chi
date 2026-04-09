@@ -2,23 +2,13 @@ package com.example.sothuchi;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.FileProvider;
-import com.google.firebase.firestore.DocumentSnapshot;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.io.File;
-import java.io.FileOutputStream;
+
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.app.Activity;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
+
 import android.graphics.Color;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -31,14 +21,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
+
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -47,10 +37,17 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.PersistentCacheSettings;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.FieldValue;
+import com.example.sothuchi.search.SearchScreenCollector;
+import com.example.sothuchi.search.SearchScreenUiState;
+import com.example.sothuchi.search.SharedWalletSearchViewModel;
+import com.example.sothuchi.realtime.model.FirestoreTransaction;
+import com.example.sothuchi.realtime.ui.TransactionRealtimeCollector;
+import com.example.sothuchi.realtime.ui.TransactionRealtimeViewModel;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -68,7 +65,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import android.graphics.Typeface;
-import android.util.TypedValue;
+
 import android.view.Gravity;
 
 public class HamchinhActivity extends AppCompatActivity {
@@ -80,6 +77,7 @@ public class HamchinhActivity extends AppCompatActivity {
     private String selectedCategoryName = "";
     private Calendar currentCalendar;
     private DatabaseHelper dbHelper;
+    private TransactionRealtimeViewModel transactionRealtimeViewModel;
 
     // Voice input: lưu reference EditText để cập nhật khi voice return
     private EditText pendingVoiceInput = null;
@@ -122,6 +120,8 @@ public class HamchinhActivity extends AppCompatActivity {
         
         // Khởi tạo Firestore Engine mới
         firestoreManager = new FirestoreManager();
+        transactionRealtimeViewModel = new ViewModelProvider(this).get(TransactionRealtimeViewModel.class);
+        TransactionRealtimeCollector.collect(this, transactionRealtimeViewModel, this::onRealtimeTransactionsChanged);
 
         showLayout(R.layout.activity_main);
     }
@@ -223,7 +223,7 @@ public class HamchinhActivity extends AppCompatActivity {
         View btnReportYearly = findViewById(R.id.btn_report_yearly);
         View btnReportMonthly = findViewById(R.id.btn_report_monthly);
         View btnTienThu = findViewById(R.id.btn_tien_thu);
-        View btnTienChi = findViewById(R.id.btn_tien_chi);
+        View anbtnTienChi = findViewById(R.id.btn_tien_chi);
 
         if (btnTienThu != null) btnTienThu.setOnClickListener(v -> showLayout(R.layout.tienthu));
         View btnTienChiRedesign = findViewById(R.id.btn_tien_chi);
@@ -252,6 +252,19 @@ public class HamchinhActivity extends AppCompatActivity {
 
         View itemExportData = findViewById(R.id.item_export_data);
         if (itemExportData != null) itemExportData.setOnClickListener(v -> showExportDialog());
+
+        View itemLoginManagement = findViewById(R.id.item_login_management);
+        if (itemLoginManagement != null) {
+            itemLoginManagement.setOnClickListener(v -> {
+                Intent intent = new Intent(this, com.example.sothuchi.sharedwallet.ui.DeviceManagementActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        View itemChangeUsername = findViewById(R.id.item_change_username);
+        if (itemChangeUsername != null) {
+            itemChangeUsername.setOnClickListener(v -> showChangeUsernameDialog());
+        }
         
         // Back Button in baocao_toanki
         View btnBack = findViewById(R.id.btn_back);
@@ -377,6 +390,9 @@ public class HamchinhActivity extends AppCompatActivity {
                                 String note = doc.getString("note") != null ? doc.getString("note") : "";
                                 String category = doc.getString("category") != null ? doc.getString("category") : "";
                                 int type = doc.getLong("type") != null ? doc.getLong("type").intValue() : 0;
+                                String createdBy = doc.getString("createdBy") != null ? doc.getString("createdBy") : "";
+                                String deviceName = doc.getString("devices") != null ? doc.getString("devices") : "";
+                                String deviceId = doc.getString("deviceId") != null ? doc.getString("deviceId") : "";
 
                                 java.util.Date dateObj = null;
                                 if (doc.getTimestamp("timestamp") != null) {
@@ -389,6 +405,9 @@ public class HamchinhActivity extends AppCompatActivity {
                                 }
 
                                 Transaction t = new Transaction(amount, note, category, dateStr, type);
+                                t.setCreatedBy(createdBy);
+                                t.setDeviceName(deviceName);
+                                t.setDeviceId(deviceId);
                                 dbHelper.addTransaction(t);
                             } catch (Exception e) {
                                 android.util.Log.e("FirebaseFetch", "Error parsing doc: " + e.getMessage());
@@ -1064,6 +1083,7 @@ public class HamchinhActivity extends AppCompatActivity {
 
                 // Lưu vào cơ sở dữ liệu SQLite (local)
                 Transaction transaction = new Transaction(amount, noteStr, selectedCategoryName, cleanDate, type);
+                attachCurrentDeviceIdentity(transaction);
                 long id = dbHelper.addTransaction(transaction);
 
                 if (id != -1) {
@@ -1111,11 +1131,42 @@ public class HamchinhActivity extends AppCompatActivity {
         }
     }
 
+    private void attachCurrentDeviceIdentity(Transaction transaction) {
+        if (transaction == null) return;
+        com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore store =
+                new com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore(this);
+
+        String createdBy = store.getNickname();
+        transaction.setCreatedBy(createdBy != null && !createdBy.trim().isEmpty() ? createdBy : "Người dùng ẩn danh");
+
+        String deviceName = android.os.Build.MODEL;
+        transaction.setDeviceName(deviceName != null && !deviceName.trim().isEmpty() ? deviceName : "Không rõ thiết bị");
+
+        transaction.setDeviceId(store.getDeviceId());
+    }
+
     private void saveOrUpdateTransaction(String transactionId, long amount, String note, String categoryKey, int type, java.util.Date selectedDate) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null || transactionId == null) return;
 
         String userId = user.getUid();
+
+        // ═════════════════════════════════════════════════════════════
+        // TASK 2: Inject Device Metadata (createdBy + deviceName)
+        // ═════════════════════════════════════════════════════════════
+        com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore store =
+                new com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore(this);
+
+        // FIX: createdBy gets the nickname (username) from SharedPreferences
+        final String createdBy = (store.getNickname() != null && !store.getNickname().isEmpty())
+                ? store.getNickname()
+                : "Người dùng ẩn danh";
+
+        // FIX: deviceName gets the hardware model from Build.MODEL (not nickname!)
+        final String deviceName = (android.os.Build.MODEL != null && !android.os.Build.MODEL.isEmpty())
+                ? android.os.Build.MODEL
+                : "Không rõ thiết bị";
+        final String deviceId = store.getDeviceId();
 
         // Chuyển đổi Date → Firestore Timestamp
         com.google.firebase.Timestamp firebaseTimestamp = new com.google.firebase.Timestamp(selectedDate);
@@ -1136,6 +1187,11 @@ public class HamchinhActivity extends AppCompatActivity {
         data.put("yearMonth", yearMonth);
         data.put("year", year);
         data.put("lastUpdated", FieldValue.serverTimestamp());
+        
+        // TASK 2: Add metadata fields
+        data.put("createdBy", createdBy);
+        data.put("devices", deviceName);  // Firestore key is "devices", not "deviceName"
+        data.put("deviceId", deviceId);
 
         // Sử dụng Subcollections: users/{uid}/transactions/{id}
         // SetOptions.merge() giúp Update nếu đã tồn tại, Create nếu chưa có
@@ -1145,6 +1201,8 @@ public class HamchinhActivity extends AppCompatActivity {
                 .set(data, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     android.util.Log.d("Firestore", "✓ Database synced: " + transactionId);
+                    android.util.Log.d("Firestore", "  → createdBy: " + createdBy);
+                    android.util.Log.d("Firestore", "  → devices: " + deviceName);
                 })
                 .addOnFailureListener(e -> {
                     android.util.Log.e("Firestore", "✗ Sync error for " + transactionId + ": " + e.getMessage());
@@ -1555,6 +1613,7 @@ public class HamchinhActivity extends AppCompatActivity {
                                         int type = actionType.equalsIgnoreCase("THU") ? 1 : 0;
                                         String cleanDate = date != null && date.contains(" ") ? date.split(" ")[0] : (date != null ? date : "");
                                         Transaction t = new Transaction(amount, note, category, cleanDate, type);
+                                        attachCurrentDeviceIdentity(t);
                                         long id = -1;
                                         try {
                                             id = dbHelper.addTransaction(t);
@@ -1896,6 +1955,7 @@ public class HamchinhActivity extends AppCompatActivity {
 
                 // Lưu vào Database (Type 0 là Chi)
                 Transaction t = new Transaction(amount, noteStr, selectedCategoryName, cleanDate, 0);
+                attachCurrentDeviceIdentity(t);
                 if (dbHelper.addTransaction(t) != -1) {
                     Toast.makeText(this, "Đã lưu khoản chi!", Toast.LENGTH_SHORT).show();
                     refreshCalendarData();
@@ -1979,6 +2039,7 @@ public class HamchinhActivity extends AppCompatActivity {
 
                 // Lưu vào Database (Type 1 là Thu)
                 Transaction t = new Transaction(amount, noteStr, selectedCategoryName, cleanDate, 1);
+                attachCurrentDeviceIdentity(t);
                 if (dbHelper.addTransaction(t) != -1) {
                     Toast.makeText(this, "Đã lưu khoản thu!", Toast.LENGTH_SHORT).show();
                     refreshCalendarData();
@@ -2021,6 +2082,10 @@ public class HamchinhActivity extends AppCompatActivity {
     private android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable searchRunnable;
     private List<Transaction> lastFilteredTransactions = new ArrayList<>();
+    private SharedWalletSearchViewModel searchViewModel;
+    private SearchAdapter searchAdapter;
+    private boolean searchCollectorBound = false;
+    private boolean isUserFilterChipBinding = false;
 
     // ═══════════════════════════════════════════════════════════
     // PDF EXPORT — Storage Access Framework Launcher
@@ -2064,21 +2129,26 @@ public class HamchinhActivity extends AppCompatActivity {
     // ═══════════════════════════════════════════════════════════
 
     private void setupSearchScreen() {
-        // 1. Tải toàn bộ giao dịch từ cơ sở dữ liệu
-        List<Transaction> allTransactions = dbHelper.getAllTransactions();
+        if (searchViewModel == null) {
+            searchViewModel = new ViewModelProvider(this).get(SharedWalletSearchViewModel.class);
+        }
+        if (searchAdapter == null) {
+            searchAdapter = new SearchAdapter();
+        }
 
-        // 2. Khởi tạo Adapter
-        SearchAdapter searchAdapter = new SearchAdapter();
         RecyclerView rvResults = findViewById(R.id.rv_search_results);
         if (rvResults != null) {
             rvResults.setAdapter(searchAdapter);
         }
 
-        // 3. Hiển thị toàn bộ dữ liệu ban đầu (không có query)
-        performSearch("", allTransactions, searchAdapter);
-        lastFilteredTransactions = new ArrayList<>(allTransactions);
+        if (!searchCollectorBound) {
+            searchCollectorBound = true;
+            SearchScreenCollector.collect(this, searchViewModel, state -> {
+                runOnUiThread(() -> renderSearchState(state));
+            });
+        }
 
-        // 4. Tìm kiếm nội dung (Export button)
+        // Tìm kiếm nội dung (Export button)
         View btnExport = findViewById(R.id.btn_search_export);
         if (btnExport != null) {
             btnExport.setOnClickListener(v -> {
@@ -2091,9 +2161,10 @@ public class HamchinhActivity extends AppCompatActivity {
             });
         }
 
-        // 4. EditText + Clear Button
+        // EditText + Clear Button
         EditText etSearch = findViewById(R.id.et_search_query);
         View btnClear = findViewById(R.id.btn_search_clear);
+        com.google.android.material.chip.ChipGroup chipGroup = findViewById(R.id.chip_user_filter_group);
 
         if (btnClear != null && etSearch != null) {
             btnClear.setOnClickListener(v -> {
@@ -2121,11 +2192,103 @@ public class HamchinhActivity extends AppCompatActivity {
                     }
                     searchRunnable = () -> {
                         String query = s.toString().trim();
-                        performSearch(query, allTransactions, searchAdapter);
+                        if (searchViewModel != null) {
+                            searchViewModel.setQuery(query);
+                        }
                     };
                     searchHandler.postDelayed(searchRunnable, 300);
                 }
             });
+        }
+
+        if (chipGroup != null) {
+            chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+                if (isUserFilterChipBinding) return;
+                if (searchViewModel == null) return;
+
+                if (checkedIds == null || checkedIds.isEmpty()) {
+                    searchViewModel.setSelectedUser(SearchScreenUiState.ALL_USERS);
+                    return;
+                }
+
+                View checkedView = group.findViewById(checkedIds.get(0));
+                if (checkedView instanceof com.google.android.material.chip.Chip) {
+                    String user = ((com.google.android.material.chip.Chip) checkedView).getText().toString();
+                    searchViewModel.setSelectedUser(user);
+                }
+            });
+        }
+    }
+
+    private void renderSearchState(SearchScreenUiState state) {
+        if (layoutId_current != R.layout.layout_search) return;
+
+        this.lastFilteredTransactions = new ArrayList<>(state.getFilteredTransactions());
+
+        if (searchAdapter != null) {
+            searchAdapter.submitList(state.getItems());
+        }
+
+        updateSearchSummary(state);
+        bindUserFilterChips(state);
+        updateSearchEmptyState(state);
+    }
+
+    private void updateSearchSummary(SearchScreenUiState state) {
+        TextView tvIncome = findViewById(R.id.tv_search_income);
+        TextView tvExpense = findViewById(R.id.tv_search_expense);
+        TextView tvTotal = findViewById(R.id.tv_search_total);
+
+        java.text.NumberFormat fmt = java.text.NumberFormat.getInstance(new Locale("vi", "VN"));
+
+        if (tvIncome != null) {
+            tvIncome.setText("+" + fmt.format(state.getTotalIncome()) + "đ");
+        }
+        if (tvExpense != null) {
+            tvExpense.setText("-" + fmt.format(state.getTotalExpense()) + "đ");
+        }
+        if (tvTotal != null) {
+            String prefix = state.getTotalNet() >= 0 ? "+" : "";
+            tvTotal.setText(prefix + fmt.format(state.getTotalNet()) + "đ");
+            tvTotal.setTextColor(state.getTotalNet() >= 0
+                    ? ContextCompat.getColor(this, R.color.saturday_blue)
+                    : ContextCompat.getColor(this, R.color.sunday_red));
+        }
+    }
+
+    private void bindUserFilterChips(SearchScreenUiState state) {
+        com.google.android.material.chip.ChipGroup chipGroup = findViewById(R.id.chip_user_filter_group);
+        if (chipGroup == null) return;
+
+        isUserFilterChipBinding = true;
+        chipGroup.removeAllViews();
+
+        for (String user : state.getUsers()) {
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(this);
+            chip.setText(user);
+            chip.setCheckable(true);
+            chip.setClickable(true);
+            chip.setId(View.generateViewId());
+            chip.setChecked(user.equals(state.getSelectedUser()));
+            chipGroup.addView(chip);
+        }
+
+        isUserFilterChipBinding = false;
+    }
+
+    private void updateSearchEmptyState(SearchScreenUiState state) {
+        View emptyLayout = findViewById(R.id.layout_search_empty);
+        RecyclerView rvResults = findViewById(R.id.rv_search_results);
+        TextView tvEmptyMsg = findViewById(R.id.tv_search_empty_msg);
+
+        boolean empty = state.getFilteredTransactions().isEmpty();
+        if (rvResults != null) rvResults.setVisibility(empty ? View.GONE : View.VISIBLE);
+        if (emptyLayout != null) emptyLayout.setVisibility(empty ? View.VISIBLE : View.GONE);
+
+        if (empty && tvEmptyMsg != null) {
+            tvEmptyMsg.setText(state.getQuery().isEmpty()
+                    ? "Nhập từ khóa để tìm kiếm giao dịch"
+                    : "Không tìm thấy giao dịch phù hợp");
         }
     }
 
@@ -3008,6 +3171,43 @@ public class HamchinhActivity extends AppCompatActivity {
         }).show(getSupportFragmentManager(), com.example.sothuchi.ui.ExportEmailBottomSheet.TAG);
     }
 
+    /**
+     * TASK 1: Show MaterialAlertDialog to change the device username.
+     * Saves locally to SharedPreferences and updates Firestore devices collection.
+     */
+    private void showChangeUsernameDialog() {
+        com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore store =
+                new com.example.sothuchi.sharedwallet.identity.DeviceIdentityStore(this);
+
+        com.example.sothuchi.ui.ChangeUsernameBottomSheet.Companion.newInstance(
+                store.getNickname(),
+                newNickname -> {
+                    com.example.sothuchi.sharedwallet.data.UsernameSyncManager.changeUsername(
+                            HamchinhActivity.this,
+                            newNickname,
+                            new com.example.sothuchi.sharedwallet.data.UsernameSyncManager.Callback() {
+                                @Override
+                                public void onSuccess(int updatedCount) {
+                                    Toast.makeText(
+                                            HamchinhActivity.this,
+                                            "✓ Đã lưu username. Đồng bộ " + updatedCount + " giao dịch cũ",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+                                    android.util.Log.d("ChangeUsername", "Batch updated transactions: " + updatedCount);
+                                }
+
+                                @Override
+                                public void onError(String message) {
+                                    Toast.makeText(HamchinhActivity.this, "✗ Lỗi lưu: " + message, Toast.LENGTH_SHORT).show();
+                                    android.util.Log.e("ChangeUsername", "Error: " + message);
+                                }
+                            }
+                    );
+                    return kotlin.Unit.INSTANCE;
+                }
+        ).show(getSupportFragmentManager(), com.example.sothuchi.ui.ChangeUsernameBottomSheet.TAG);
+    }
+
     private void sendReportRequestToBackend() {
         android.content.Context context = this;
 
@@ -3139,19 +3339,76 @@ public class HamchinhActivity extends AppCompatActivity {
 
     private void pushDataToFirebase(JSONObject jsonObject) {
         try {
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Toast.makeText(this, "Chưa đăng nhập để đồng bộ dữ liệu", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             Map<String, Object> data = new HashMap<>();
-            data.put("action_type", jsonObject.getString("action_type"));
-            data.put("so_tien", jsonObject.getInt("so_tien"));
-            data.put("ghi_chu", jsonObject.getString("ghi_chu"));
-            data.put("danh_muc", jsonObject.getString("danh_muc"));
-            data.put("ngay", jsonObject.getString("ngay"));
+            int type = "THU".equalsIgnoreCase(jsonObject.optString("action_type")) ? 1 : 0;
+            long amount = jsonObject.optLong("so_tien", 0L);
+            String note = jsonObject.optString("ghi_chu", "");
+            String category = jsonObject.optString("danh_muc", "Khác");
 
-            db.collection("transactions").add(data)
+            Date now = new Date();
+            SimpleDateFormat yearMonthFmt = new SimpleDateFormat("yyyy-MM", Locale.getDefault());
+            SimpleDateFormat yearFmt = new SimpleDateFormat("yyyy", Locale.getDefault());
+
+            data.put("amount", amount);
+            data.put("note", note);
+            data.put("category", category);
+            data.put("type", type);
+            data.put("timestamp", new com.google.firebase.Timestamp(now));
+            data.put("yearMonth", yearMonthFmt.format(now));
+            data.put("year", Integer.parseInt(yearFmt.format(now)));
+            data.put("lastUpdated", FieldValue.serverTimestamp());
+
+            db.collection("users").document(user.getUid())
+                    .collection("transactions")
+                    .add(data)
                     .addOnSuccessListener(documentReference -> Toast.makeText(this, "Dữ liệu đã được lưu!", Toast.LENGTH_SHORT).show())
                     .addOnFailureListener(e -> Toast.makeText(this, "Lỗi lưu dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         } catch (Exception e) {
             Toast.makeText(this, "Lỗi khi đẩy dữ liệu lên Firebase: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void onRealtimeTransactionsChanged(List<FirestoreTransaction> remoteTransactions) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) return;
+
+        dbHelper.clearAllTransactions();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        for (FirestoreTransaction rt : remoteTransactions) {
+            Date dateObj = rt.getTimestamp() != null ? rt.getTimestamp().toDate() : new Date();
+            String dateStr = sdf.format(dateObj);
+
+            Transaction t = new Transaction(rt.getAmount(), rt.getNote(), rt.getCategory(), dateStr, rt.getType());
+            t.setCreatedBy(rt.getCreatedBy());
+            t.setDeviceName(rt.getDeviceName());
+            t.setDeviceId(rt.getDeviceId());
+            dbHelper.addTransaction(t);
+        }
+
+        runOnUiThread(this::refreshCurrentLayoutData);
+    }
+
+    private void refreshCurrentLayoutData() {
+        if (layoutId_current == R.layout.layout_search) {
+            setupSearchScreen();
+        } else if (layoutId_current == R.layout.lich) {
+            refreshCalendarData();
+        } else if (layoutId_current == R.layout.baocao || layoutId_current == R.layout.baocao_thunhap) {
+            updateBaoCaoDateUI();
+        } else if (layoutId_current == R.layout.baocao_nam || layoutId_current == R.layout.baocao_nam_thunhap) {
+            updateYearlyDateUI();
+        } else if (layoutId_current == R.layout.baocao_toanki) {
+            updateToanKiDateUI();
+        } else if (layoutId_current == R.layout.ngansach) {
+            updateBudgetDateUI();
         }
     }
 }

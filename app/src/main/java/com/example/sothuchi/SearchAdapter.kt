@@ -97,15 +97,13 @@ class SearchAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 val row = item as SearchListItem.TransactionRow
                 val t = row.transaction
 
-                // Category + Note display
-                val displayName = if (!t.note.isNullOrBlank()) {
-                    "${t.category} (${t.note})"
-                } else {
-                    t.category ?: ""
-                }
                 holder.tvCategory.text = t.category ?: ""
                 holder.tvNote.text = t.note ?: ""
                 holder.tvNote.visibility = if (t.note.isNullOrBlank()) View.GONE else View.VISIBLE
+
+                val createdBy = t.createdBy?.takeIf { it.isNotBlank() } ?: "Không rõ"
+                val deviceName = t.deviceName?.takeIf { it.isNotBlank() } ?: "Thiết bị"
+                holder.tvMeta.text = "Nhập bởi: $createdBy • Thiết bị: $deviceName"
 
                 // Amount formatting
                 val fmt = NumberFormat.getInstance(Locale("vi", "VN"))
@@ -140,6 +138,7 @@ class SearchAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     class TransactionViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvCategory: TextView = view.findViewById(R.id.tv_category)
+        val tvMeta: TextView = view.findViewById(R.id.tv_meta_user_device)
         val tvNote: TextView = view.findViewById(R.id.tv_note)
         val tvAmount: TextView = view.findViewById(R.id.tv_amount)
         val ivIcon: ImageView = view.findViewById(R.id.iv_cat_icon)
